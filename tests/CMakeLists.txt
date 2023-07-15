@@ -26,6 +26,7 @@ include_directories(
 
 add_executable(
   test_spscrb
+  test_spscrb_adapter.cpp
   test_spscrb.cpp
   test_spscrb_size_type.cpp
 )
