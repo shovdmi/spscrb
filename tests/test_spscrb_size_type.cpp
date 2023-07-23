@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #define SPSCRB_SIZE_TYPE uint8_t
+#define SPSCRB_DIFFERENCE_TYPE int8_t
 #include "../include/spscrb.h"
 
 
@@ -114,5 +115,27 @@ TEST(TestPushback, TestCountersOverflowingSizeType) {
     std::cout << std::endl;
 
     EXPECT_EQ(spscrb_size(&rb), 4);
+}
+
+TEST(TestPushback, TestFullQueue) {
+    char buf[4];
+    spscrb_t rb = { buf, sizeof(buf) / sizeof(buf[0]), (SPSCRB_SIZE_TYPE)(-1) - 2, (SPSCRB_SIZE_TYPE)(-1) - 2 }; //, (SPSCRB_SIZE_TYPE)(-1) - 2 };
+    ASSERT_EQ(spscrb_capacity(&rb), 4);
+
+    for (int i = 0; i < sizeof(buf) / sizeof(buf[0]); ++i)
+        spscrb_push_back(&rb, i);
+
+    ASSERT_EQ(spscrb_size(&rb), spscrb_capacity(&rb));
+
+    for (int i = 0; i < UCHAR_MAX; ++i) {
+        ASSERT_EQ(spscrb_top(&rb), (char)i);
+        spscrb_pop_front(&rb);
+        ASSERT_EQ(spscrb_size(&rb), spscrb_capacity(&rb) - 1);
+        spscrb_push_back(&rb, i + 4);
+        ASSERT_EQ(spscrb_size(&rb), spscrb_capacity(&rb));
+    }
+
+
+
 }
 #endif

@@ -16,13 +16,17 @@ extern "C" {
 #define SPSCRB_SIZE_TYPE size_t
 #endif
 
+#ifndef SPSCRB_DIFFERENCE_TYPE
+#define SPSCRB_DIFFERENCE_TYPE ptrdiff_t
+#endif
+
 #ifndef SPSCRB_VALUE_TYPE
 #define SPSCRB_VALUE_TYPE char
 #endif
 
 typedef struct {
     SPSCRB_VALUE_TYPE* const buf;
-    const SPSCRB_SIZE_TYPE capacity;
+    const SPSCRB_DIFFERENCE_TYPE capacity;
     SPSCRB_SIZE_TYPE pops;
     SPSCRB_SIZE_TYPE pushes;
 //    SPSCRB_SIZE_TYPE peeks;
@@ -32,6 +36,9 @@ typedef struct {
 /* static_assert(rb->capacity != SIZE_MAX)
  if "pops"==0 and "pushes" overflowed (now is equal to 0) we expect: size()==SIZE_MAX+1, 
  but we have pushes == pops == 0 == (pushes-pops) i.e size()==0
+
+ This is the reason why we use "ptrdiff_t capacity, ptrdiff_t size()", for capacity to be two times lower than max values of pushes and pops, 
+ and be able to represent corner cases such as when pushes has overlaped and "pushes == 0" and "size() == capacity"
  */
 
 
@@ -50,7 +57,7 @@ typedef struct {
 */
 
 
-static inline SPSCRB_SIZE_TYPE spscrb_capacity(const spscrb_t *rb) {
+static inline SPSCRB_DIFFERENCE_TYPE spscrb_capacity(const spscrb_t *rb) {
     return rb->capacity; 
 }
 
@@ -65,8 +72,8 @@ static inline bool spscrb_full(const spscrb_t* rb) {
 }
 
 
-static inline SPSCRB_SIZE_TYPE spscrb_size(const spscrb_t* rb) {
-    return (SPSCRB_SIZE_TYPE)(rb->pushes - rb->pops);
+static inline SPSCRB_DIFFERENCE_TYPE spscrb_size(const spscrb_t* rb) {
+    return (SPSCRB_DIFFERENCE_TYPE)(rb->pushes - rb->pops);
 }
 
 
@@ -92,9 +99,10 @@ static inline SPSCRB_VALUE_TYPE spscrb_top(const spscrb_t *rb) {
 //}
 
 
-static inline SPSCRB_VALUE_TYPE spscrb_at(const spscrb_t *rb, SPSCRB_SIZE_TYPE offset) {
+static inline SPSCRB_VALUE_TYPE spscrb_at(const spscrb_t *rb, SPSCRB_DIFFERENCE_TYPE offset) {
     assert(offset < rb->capacity);
-    assert(offset < rb->pushes - rb->pops);
+    //assert(offset < rb->pushes - rb->pops);
+    assert(offset < spscrb_size(rb));
     return rb->buf[(rb->pops + offset) % rb->capacity];
 }
 

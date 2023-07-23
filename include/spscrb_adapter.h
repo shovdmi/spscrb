@@ -98,7 +98,7 @@ struct spscrb_adapter {
     value_type buf[N];
     size_type pushes;
     size_type pops;
-    const size_type capacity;
+    const difference_type capacity;
 
     spscrb_adapter() noexcept : pushes(0), pops(0), capacity(N) {};
 
@@ -117,7 +117,7 @@ struct spscrb_adapter {
         return buf[pops % capacity];
     }
 
-    size_type size() const noexcept {
+    difference_type size() const noexcept {
         return pushes - pops;
     }
 
@@ -129,13 +129,13 @@ struct spscrb_adapter {
         return size() == 0;
     }
 
-    value_type& at(size_type offset) noexcept {
+    value_type& at(difference_type offset) noexcept {
         assert(offset < size());
         assert(offset < capacity);
         return buf[(pops + offset) % capacity];
     }
 
-    const value_type& at(size_type offset) const noexcept {
+    const value_type& at(difference_type offset) const noexcept {
         return buf[(pops + offset) % capacity];
     }
 
